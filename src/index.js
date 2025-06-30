@@ -17,20 +17,21 @@ const error = log.extend('ERROR')
  * @author Matthew Duffy <mattduffy@gmail.com>
  */
 export class Banner {
-  #borderGlyph
-  #startingup
-  #local
-  #localPort
-  #public
+  #appName
   #arch
-  #platform
-  #nodejs
-  #nodeName
-  #nodeVersion
-  #nodeLts
+  #bannerText
+  #borderGlyph
   #lineStarts = []
   #lines = []
-  #bannerText
+  #local
+  #localPort
+  #nodejs
+  #nodeLts
+  #nodeName
+  #nodeVersion
+  #platform
+  #public
+  #startingup
   /**
    * Create an instance of the Banner class.
    * @param { object } [strings] - An object literal of strings to display in the banner.
@@ -45,6 +46,7 @@ export class Banner {
       return null
     }
     this.#borderGlyph = strings?.borderGlyph ?? '#'
+    this.#appName = strings.name
     this.#startingup = strings.name
     this.#localPort = strings?.localPort ?? null
     this.#local = `${strings.local}${(this.#localPort) ? ':' + this.#localPort : ''}`
@@ -145,10 +147,32 @@ export class Banner {
   }
 
   use() {
-    const _bannerText = this.#bannerText
-    // log(_bannerText)
+    const g = this.#borderGlyph
+    const n = this.#appName
     return async function banner(ctx, next){
-      console.log(_bannerText)
+      // console.log(ctx)
+      const _urlLabel = 'URL:'
+      const _url = `${ctx.request.header.host}${ctx.request.url}`
+      const _urlLine = `${_urlLabel} ${_url}`
+      const _refLabel = 'Referer:'
+      const _ref = ctx.request.header.referer ?? '<emtpy header field>'
+      const _refLine = `${_refLabel} ${_ref}`
+      const _longestLabel = [_urlLabel, _refLabel].reduce((a, c) => {
+        if (a > (c.indexOf(':') + 1)) {
+          return a
+        }
+        return (c.indexOf(':' + 1))
+      }, '')
+      const _longestLine = [_urlLine, _refLine].reduce((a, c) => {
+        if (a > c.length) return a
+        return c.length
+      }, '')
+      // console.log('request banner _longestLine', _longestLine)
+      const _requestBanner = `${g.padEnd(_longestLine + 5, g)}\n`
+        + `${g} ${_urlLine}\n`
+        + `${g} ${_refLine}\n`
+        + `${g.padEnd(_longestLine + 5, g)}`
+      console.log(_requestBanner)
       try {
         // log('Emitting start-up banner')
         await next()
