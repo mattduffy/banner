@@ -39,7 +39,7 @@ export class Banner {
    * @param { string } strings.public - The public web address the app is accesssible at.
    * @param { string } strings.local - The local address the app is accessible at.
    * @param { Number } [strings.localPort] - The local address port, if provided.
-   * @return { Banner}
+   * @returns { Banner}
    */
   constructor(strings=null) {
     if (!strings) {
@@ -146,12 +146,21 @@ export class Banner {
     }, '')
   }
 
-  use() {
+  /**
+   * Create a middleware method that generates a banner for each request.
+   * @param { function } [log] - an optional reference to the app level logging function.
+   * @param { function } [error] - an optional reference to the app level error logging function.
+   * @returns { (ctx:object, next:function) => string } - Koa middleware function.
+   */
+  use(log=null, error=null) {
+    const _log = log ?? console.log
+    const _error = error ?? console.error
+    _log('adding request banner to the app.')
     const g = this.#borderGlyph
     const n = this.#appName
     return async function banner(ctx, next){
-      // console.log(ctx)
-      const _urlLabel = 'URL:'
+      const _g = (/post/i.test(ctx.request.method)) ? '@' : g
+      const _urlLabel = `${ctx.request.method}:` 
       const _url = `${ctx.request.header.host}${ctx.request.url}`
       const _urlLine = `${_urlLabel} ${_url}`
       const _refLabel = 'Referer:'
@@ -167,18 +176,18 @@ export class Banner {
         if (a > c.length) return a
         return c.length
       }, '')
-      // console.log('request banner _longestLine', _longestLine)
-      const _requestBanner = `${g.padEnd(_longestLine + 5, g)}\n`
-        + `${g} ${_urlLine}\n`
-        + `${g} ${_refLine}\n`
-        + `${g.padEnd(_longestLine + 5, g)}`
-      console.log(_requestBanner)
+      // _log('request banner _longestLine', _longestLine)
+      const _requestBanner = `${_g.padEnd(_longestLine + 5, _g)}\n`
+        + `${_g} ${_urlLine}\n`
+        + `${_g} ${_refLine}\n`
+        + `${_g.padEnd(_longestLine + 5, _g)}`
+      _log(_requestBanner)
       try {
         // log('Emitting start-up banner')
         await next()
       } catch (e) {
-        error('Failed after adding start-up banner.')
-        error(e)
+        _error('Failed after adding start-up banner.')
+        _error(e)
         ctx.throw(500, 'Error after adding start-up banner.', e)
       }
     }
