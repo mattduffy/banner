@@ -15,7 +15,7 @@
     "url": "https://github.com/mattduffy/banner/issues"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "DEBUG=* node --test test/test.js"
   },
   "exports": {
     ".": "./src/index.js",
@@ -24,8 +24,7 @@
   "devDependencies": {
     "eslint": "8.2.0",
     "eslint-config-airbnb-base": "15.0.0",
-    "eslint-plugin-import": "2.25.2",
-    "jest": "30.0.3"
+    "eslint-plugin-import": "2.25.2"
   },
   "keywords": [],
   "dependencies": {
