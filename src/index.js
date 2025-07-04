@@ -20,7 +20,7 @@ export class Banner {
   #appName
   #arch
   #bannerText
-  #borderGlyph
+  #borderGlyph = '#'
   #lineStarts = []
   #lines = []
   #local
@@ -42,27 +42,41 @@ export class Banner {
    * @returns { Banner}
    */
   constructor(strings=null) {
-    if (!strings) {
-      return null
-    }
-    this.#borderGlyph = strings?.borderGlyph ?? '#'
-    this.#appName = strings.name
-    this.#startingup = strings.name
-    this.#localPort = strings?.localPort ?? null
-    this.#local = `${strings.local}${(this.#localPort) ? ':' + this.#localPort : ''}`
-    this.#public = strings.public
     this.#arch = process.arch
-    this.#platform = process.platform
-    this.#nodeName = process.release.name
     this.#nodeLts = process.release?.lts ?? null
+    this.#nodeName = process.release.name
     this.#nodeVersion = process.version
+    this.#platform = process.platform
 
-    this.startingupLabel = 'Starting up'
-    this.localLabel = 'local'
-    this.publicLabel = 'public'
-    this.nodejsLabel = 'process'
     this.archLabel = 'arch'
+    this.localLabel = 'local'
+    this.nodejsLabel = 'process'
+    this.publicLabel = 'public'
+    this.startingupLabel = 'Starting up'
 
+    if (strings) {
+      this.#appName = strings.name
+      this.#borderGlyph = strings?.borderGlyph ?? this.#borderGlyph
+      this.#localPort = strings?.localPort ?? null
+      this.#local = `${strings.local}${(this.#localPort) ? ':' + this.#localPort : ''}`
+      this.#public = strings.public
+      this.#startingup = strings.name
+    }
+
+    if (this.#appName && this.#local && this.#public) {
+      this.#compose()
+    }
+  }
+
+  /**
+   * Compose the inputs in to the banner text.
+   * @throws { Error } - Throws an exception if name, public, local values are missing.
+   * @return { void }
+   */
+  #compose () {
+    if (!this.#appName || !this.#local || !this.#public) {
+      throw new Error('Missing required inputs.')
+    }
     this.startingupLine = `${this.startingupLabel}: ${this.#startingup}`
     this.#lineStarts.push(this.startingupLine)
     this.localLine = `${this.localLabel}: `
@@ -120,14 +134,95 @@ export class Banner {
       + `${g}${g.padEnd(this.longestLine + 5, g)}${g}\n`
   }
 
+  /**
+   * Emits the entire composed banner string through the console.log method.
+   * @type { Boolean }
+   * @return { Boolean } - True if #bannerText has content, otherwise false.
+   */
   print() {
-    console.log(this.#bannerText)
+    if (this.#bannerText) {
+      console.log(this.#bannerText)
+      return true
+    }
+    return false
   }
 
+  /**
+   * Set the name of the app.
+   * @type { string }
+   * @param { string } name - The name of the app to display in the banner.
+   */
+  set name(name) {
+    this.#appName = name
+    this.#startingup = name
+    if (this.#local && this.#public) {
+      this.#compose()
+    }
+  }
+
+    /**
+   * Set the local address displayed in the banner.
+   * @type { string }
+   * @param { string } local - The local address displayed in the banner.
+   */
+  set local(local) {
+    this.#local = `${local}${(this.#localPort) ? ':' + this.#localPort : ''}`
+    if (this.#appName && this.#public) {
+      this.#compose()
+    }
+  }
+
+  /**
+   * Set the local address port displayed in the banner.
+   * @type { string }
+   * @param { string } port - The local address port displayed in the banner.
+   */
+  set localPort(port) {
+    this.#localPort = port
+    this.#local = `${this.#local}:${port}`
+    if (this.#appName && this.#public) {
+      this.#compose()
+    }
+  }
+
+  /**
+   * Set the public address displayed in the banner.
+   * @type { string }
+   * @param { string } glyph - The public address displayed in the banner.
+   */
+  set public(pub) {
+    this.#public = pub
+    if (this.#appName && this.#local) {
+      this.#compose()
+    }
+  }
+
+  /**
+   * Set the border glyph of the banner.
+   * @type { string }
+   * @param { string } glyph - The border glyph character of the banner.
+   */
+  set borderGlyph(glyph) {
+    this.#borderGlyph = glyph
+    if (this.#appName && this.#local && this.#public) {
+      this.#compose()
+    }
+  }
+
+  /**
+   * Return the entire composed banner as a string.
+   * @type { string }
+   * @return { string } - The composed banner as a string.
+   */
   get bannerText() {
     return this.#bannerText
   }
 
+  /**
+   * Return the length of the longest line label as an int.
+   * @type { number }
+   * @return { number } - Length of the longest line label.
+   */
   get longestLabel() {
     return this.#lineStarts.reduce((a, c) => {
       if (a > (c.indexOf(':') + 1)) {
@@ -137,6 +232,11 @@ export class Banner {
     }, '')
   }
 
+  /**
+   * Return the length of the longest line of text as an int.
+   * @type { number }
+   * @return { number } - Length of the longest line of text.
+   */
   get longestLine() {
     return this.#lines.reduce((a, c) => {
       if (a > c.length) {
@@ -150,7 +250,7 @@ export class Banner {
    * Create a middleware method that generates a banner for each request.
    * @param { function } [log] - an optional reference to the app level logging function.
    * @param { function } [error] - an optional reference to the app level error logging function.
-   * @returns { (ctx:object, next:function) => string } - Koa middleware function.
+   * @returns { (ctx:object, next:function) => mixed } - Koa middleware function.
    */
   use(log=null, error=null) {
     const _log = log ?? console.log
@@ -159,32 +259,32 @@ export class Banner {
     const g = this.#borderGlyph
     const n = this.#appName
     return async function banner(ctx, next){
-      const _g = (/post/i.test(ctx.request.method)) ? '@' : g
-      const _urlLabel = `${ctx.request.method}:` 
-      const _url = `${ctx.request.header.host}${ctx.request.url}`
-      const _urlLine = `${_urlLabel} ${_url}`
-      const _refLabel = 'Referer:'
-      const _ref = ctx.request.header.referer ?? '<emtpy header field>'
-      const _refLine = `${_refLabel} ${_ref}`
-      const _longestLabel = [_urlLabel, _refLabel].reduce((a, c) => {
-        if (a > (c.indexOf(':') + 1)) {
-          return a
-        }
-        return (c.indexOf(':' + 1))
-      }, '')
-      const _longestLine = [_urlLine, _refLine].reduce((a, c) => {
-        if (a > c.length) return a
-        return c.length
-      }, '')
-      // _log('request banner _longestLine', _longestLine)
-      const _requestBanner = `${_g.padEnd(_longestLine + 5, _g)}\n`
-        + `${_g} ${_urlLine}\n`
-        + `${_g} ${_refLine}\n`
-        + `${_g.padEnd(_longestLine + 5, _g)}`
-      _log(_requestBanner)
       try {
-        // log('Emitting start-up banner')
+        const _g = (/post/i.test(ctx.request.method)) ? '@' : g
+        const _urlLabel = `${ctx.request.method}:` 
+        const _url = `${ctx.request.header.host}${ctx.request.url}`
+        const _urlLine = `${_urlLabel} ${_url}`
+        const _refLabel = 'Referer:'
+        const _ref = ctx.request.header.referer ?? '<emtpy header field>'
+        const _refLine = `${_refLabel} ${_ref}`
+        const _longestLabel = [_urlLabel, _refLabel].reduce((a, c) => {
+          if (a > (c.indexOf(':') + 1)) {
+            return a
+          }
+          return (c.indexOf(':' + 1))
+        }, '')
+        const _longestLine = [_urlLine, _refLine].reduce((a, c) => {
+          if (a > c.length) return a
+          return c.length
+        }, '')
+        // _log('request banner _longestLine', _longestLine)
+        const _requestBanner = `${_g.padEnd(_longestLine + 5, _g)}\n`
+          + `${_g} ${_urlLine}\n`
+          + `${_g} ${_refLine}\n`
+          + `${_g.padEnd(_longestLine + 5, _g)}`
+        _log(_requestBanner)
         await next()
+        return true
       } catch (e) {
         _error('Failed after adding start-up banner.')
         _error(e)
