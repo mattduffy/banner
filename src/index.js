@@ -20,7 +20,10 @@ export class Banner {
   #appName
   #arch
   #bannerText
-  #borderGlyph = '#'
+  #borderGlyphGET = '#'
+  #borderGlyphPUT = '&'
+  #borderGlyphPOST = '@'
+  #borderGlyphDELETE = '*'
   #lineStarts = []
   #lines = []
   #local
@@ -56,7 +59,7 @@ export class Banner {
 
     if (strings) {
       this.#appName = strings.name
-      this.#borderGlyph = strings?.borderGlyph ?? this.#borderGlyph
+      this.#borderGlyphGET = strings?.borderGlyph ?? this.#borderGlyphGET
       this.#localPort = strings?.localPort ?? null
       this.#local = `${strings.local}${(this.#localPort) ? ':' + this.#localPort : ''}`
       this.#public = strings.public
@@ -116,7 +119,7 @@ export class Banner {
       + this.archLine.length, ' ')
     this.#lines[4] = this.archLine
 
-    const g = this.#borderGlyph
+    const g = this.#borderGlyphGET
     this.#bannerText =
       `${g}${g.padEnd(this.longestLine + 5, g)}${g}\n`
       + `${g}  ${' '.padEnd(this.longestLine + 2, ' ')} ${g}\n`
@@ -203,7 +206,7 @@ export class Banner {
    * @param { string } glyph - The border glyph character of the banner.
    */
   set borderGlyph(glyph) {
-    this.#borderGlyph = glyph
+    this.#borderGlyphGET = glyph
     if (this.#appName && this.#local && this.#public) {
       this.#compose()
     }
@@ -256,11 +259,31 @@ export class Banner {
     const _log = log ?? console.log
     const _error = error ?? console.error
     _log('adding request banner to the app.')
-    const g = this.#borderGlyph
+    const gGET = this.#borderGlyphGET
+    const gPUT = this.#borderGlyphPUT
+    const gPOST = this.#borderGlyphPOST
+    const gDEL = this.#borderGlyphDELETE
     const n = this.#appName
     return async function banner(ctx, next){
       try {
-        const _g = (/post/i.test(ctx.request.method)) ? '@' : g
+        // const _g = (/post/i.test(ctx.request.method)) ? '@' : g
+        let _g
+        switch(ctx.request.method.toLowerCase()) {
+          case 'get':
+            _g = gGET
+            break
+          case 'post':
+            _g = gPOST
+            break
+          case 'put':
+            _g = gPUT
+            break
+          case 'delete':
+            _g = gDEL
+            break
+          default:
+            _g = gGET
+        }
         const _urlLabel = `${ctx.request.method}:` 
         const _url = `${ctx.request.header.host}${ctx.request.url}`
         const _urlLine = `${_urlLabel} ${_url}`
