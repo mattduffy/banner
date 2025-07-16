@@ -284,24 +284,32 @@ export class Banner {
           default:
             _g = gGET
         }
+        _log('ctx.request.header.host', ctx.request.header.host)
         const _urlLabel = `${ctx.request.method}:` 
-        const _url = `${ctx.request.header.host}${ctx.request.url}`
-        const _urlLine = `${_urlLabel} ${_url}`
+        const _url = `${ctx.request.protocol}://${ctx.request.header.host}${ctx.request.url}`
+        let _urlLine = `${_urlLabel} ${_url}`
         const _refLabel = 'Referer:'
         const _ref = ctx.request.header.referer ?? '<emtpy header field>'
-        const _refLine = `${_refLabel} ${_ref}`
+        let _refLine = `${_refLabel} ${_ref}`
         const _longestLabel = [_urlLabel, _refLabel].reduce((a, c) => {
-          if (a > (c.indexOf(':') + 1)) {
+          if (a.length > (c.indexOf(':') + 1)) {
             return a
           }
-          return (c.indexOf(':' + 1))
+          return (c.indexOf(':') + 1)
         }, '')
+        _refLine = _refLine.padStart(
+          (_longestLabel - _refLine.indexOf(':')) + _refLine.length, ' '
+        )
+        _urlLine = _urlLine.padStart(
+          (_longestLabel - _urlLine.indexOf(':')) + _urlLine.length, ' '
+        )
         const _longestLine = [_urlLine, _refLine].reduce((a, c) => {
           if (a > c.length) return a
           return c.length
         }, '')
         // _log('request banner _longestLine', _longestLine)
-        const _requestBanner = `${_g.padEnd(_longestLine + 5, _g)}\n`
+        const _requestBanner = 
+          `${_g.padEnd(_longestLine + 5, _g)}\n`
           + `${_g} ${_urlLine}\n`
           + `${_g} ${_refLine}\n`
           + `${_g.padEnd(_longestLine + 5, _g)}`
