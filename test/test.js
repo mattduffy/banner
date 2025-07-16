@@ -14,16 +14,19 @@ let cfg
 let ctx
 let ctx_POST
 let ctx_GET
+let ctx_PUT
+let ctx_DEL
 let next
 console.log(skip)
 describe('First test suite for banner package', async () => {
   before(() => {
     ctx = {
       request: {
+        protocol: 'https',
         method: '',
         url: '/a/really/long/url/to/a/special/page',
         header: {
-          host: 'https://banner.test',
+          host: 'banner.test',
           referer: 'https://googoogle.com',
         },
       },
@@ -31,6 +34,8 @@ describe('First test suite for banner package', async () => {
         throw new Error(`Error code ${code}: ${msg}`)
       }
     }
+    ctx_DEL = { ...ctx }
+    ctx_PUT = { ...ctx }
     ctx_POST = { ...ctx }
     ctx_GET = { ...ctx }
     next = async () => {
@@ -62,13 +67,15 @@ describe('First test suite for banner package', async () => {
     assert(!banner.print())
   })
 
-  it('Should work as a koajs middleware function.', async () => {
+  it('Should work as a koajs middleware function - POST method.', async () => {
     ctx_POST = Object.assign(ctx_POST, ctx)
     ctx_POST.request.method = 'POST'
     console.log(ctx_POST)
     const post = new Banner(ctx_POST)
     assert(await post.use()(ctx, next))
+  })
 
+  it('Should work as a koajs middleware function - GET method.', async () => {
     ctx_GET = Object.assign(ctx_GET, ctx)
     ctx_GET.request.method = 'GET'
     console.log(ctx_GET)
@@ -76,7 +83,23 @@ describe('First test suite for banner package', async () => {
     assert(await get.use()(ctx, next))
   })
 
-  it('Should fail as a koajs middleware function, missing input parameters.', async () => {
+  it('Should work as a koajs middleware function - PUT method.', async () => {
+    ctx_PUT = Object.assign(ctx_PUT, ctx)
+    ctx_PUT.request.method = 'PUT'
+    console.log(ctx_PUT)
+    const put = new Banner(ctx_PUT)
+    assert(await put.use()(ctx, next))
+  })
+
+  it('Should work as a koajs middleware function - DELETE method.', async () => {
+    ctx_DEL = Object.assign(ctx_DEL, ctx)
+    ctx_DEL.request.method = 'DELETE'
+    console.log(ctx_DEL)
+    const del = new Banner(ctx_DEL)
+    assert(await del.use()(ctx, next))
+  })
+
+it('Should fail as a koajs middleware function, missing input parameters.', async () => {
     ctx.url= ''
     ctx.request.header.host = undefined 
     ctx.request.url = undefined 
