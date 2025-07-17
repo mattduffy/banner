@@ -24,6 +24,7 @@ export class Banner {
   #borderGlyphPUT = '&'
   #borderGlyphPOST = '@'
   #borderGlyphDELETE = '*'
+  #ipAddress
   #lineStarts = []
   #lines = []
   #local
@@ -38,10 +39,11 @@ export class Banner {
   /**
    * Create an instance of the Banner class.
    * @param { object } [strings] - An object literal of strings to display in the banner.
-   * @param { string } strings.name - The name of the app starting up.
-   * @param { string } strings.public - The public web address the app is accesssible at.
+   * @param { string } [strings.ip] - The ip address of the request.
    * @param { string } strings.local - The local address the app is accessible at.
    * @param { Number } [strings.localPort] - The local address port, if provided.
+   * @param { string } strings.name - The name of the app starting up.
+   * @param { string } strings.public - The public web address the app is accesssible at.
    * @returns { Banner}
    */
   constructor(strings=null) {
@@ -61,6 +63,7 @@ export class Banner {
       this.#appName = strings.name
       this.#borderGlyphGET = strings?.borderGlyph ?? this.#borderGlyphGET
       this.#localPort = strings?.localPort ?? null
+      this.#ipAddress = strings?.ip ?? null
       this.#local = `${strings.local}${(this.#localPort) ? ':' + this.#localPort : ''}`
       this.#public = strings.public
       this.#startingup = strings.name
@@ -264,9 +267,9 @@ export class Banner {
     const gPOST = this.#borderGlyphPOST
     const gDEL = this.#borderGlyphDELETE
     const n = this.#appName
-    return async function banner(ctx, next){
+    return async function banner(ctx, next = null){
+      let _requestBanner
       try {
-        // const _g = (/post/i.test(ctx.request.method)) ? '@' : g
         let _g
         switch(ctx.request.method.toLowerCase()) {
           case 'get':
@@ -284,14 +287,28 @@ export class Banner {
           default:
             _g = gGET
         }
-        _log('ctx.request.header.host', ctx.request.header.host)
+        if (!ctx) {
+          throw new Error('Missing required ctx object.')  
+        }
+        if (!ctx.request.header.host) {
+          throw new Error('Missing required request header.host value.')  
+        }
+        if (!ctx.request.method) {
+          throw new Error('Missing required request method value.')  
+        }
+        if (!ctx.request.url) {
+          throw new Error('Missing required request url value.')  
+        }
         const _urlLabel = `${ctx.request.method}:` 
         const _url = `${ctx.request.protocol}://${ctx.request.header.host}${ctx.request.url}`
         let _urlLine = `${_urlLabel} ${_url}`
         const _refLabel = 'Referer:'
         const _ref = ctx.request.header.referer ?? '<emtpy header field>'
         let _refLine = `${_refLabel} ${_ref}`
-        const _longestLabel = [_urlLabel, _refLabel].reduce((a, c) => {
+        const _ipLabel = 'From IP:'
+        const _ip = ctx.request.ip
+        let _ipLine = `${_ipLabel} ${_ip}`
+        const _longestLabel = [_urlLabel, _refLabel, _ipLabel].reduce((a, c) => {
           if (a.length > (c.indexOf(':') + 1)) {
             return a
           }
@@ -303,24 +320,30 @@ export class Banner {
         _urlLine = _urlLine.padStart(
           (_longestLabel - _urlLine.indexOf(':')) + _urlLine.length, ' '
         )
-        const _longestLine = [_urlLine, _refLine].reduce((a, c) => {
+        _ipLine = _ipLine.padStart(
+          (_longestLabel - _ipLine.indexOf(':')) + _ipLine.length, ' '
+        )
+        const _longestLine = [_urlLine, _refLine, _ipLine].reduce((a, c) => {
           if (a > c.length) return a
           return c.length
         }, '')
         // _log('request banner _longestLine', _longestLine)
-        const _requestBanner = 
+        _requestBanner = 
           `${_g.padEnd(_longestLine + 5, _g)}\n`
           + `${_g} ${_urlLine}\n`
           + `${_g} ${_refLine}\n`
+          + `${_g} ${_ipLine}\n`
           + `${_g.padEnd(_longestLine + 5, _g)}`
         _log(_requestBanner)
-        await next()
-        return true
+        if (next) {
+          await next(ctx.request.method)
+        }
       } catch (e) {
-        _error('Failed after adding start-up banner.')
-        _error(e)
-        ctx.throw(500, 'Error after adding start-up banner.', e)
+        // _error('Failed after adding the request banner.')
+        // _error(e)
+        ctx.throw(500, e)
       }
-    }
-  }
+      return _requestBanner
+    } // end async closure function, Banner.use.banner()
+  } // end Banner.use()
 }
