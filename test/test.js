@@ -8,8 +8,10 @@ import {
 } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs/promises'
+import os from 'node:os'
 import { Banner } from '../src/index.js'
 const skip = { skip: true }
+console.log(skip)
 let cfg
 let ctx
 let ctx_POST
@@ -17,11 +19,30 @@ let ctx_GET
 let ctx_PUT
 let ctx_DEL
 let next
-console.log(skip)
 describe('First test suite for banner package', async () => {
   before(() => {
+    function getLocalIpAddress() {
+      const networkInterfaces = os.networkInterfaces();
+      let localIpAddress = null;
+    
+      for (const interfaceName in networkInterfaces) {
+        const networkInterface = networkInterfaces[interfaceName];
+        for (const details of networkInterface) {
+          // Check for IPv4, not internal (loopback), and a valid address
+          if (details.family === 'IPv4' && !details.internal) {
+            localIpAddress = details.address;
+            break; // Found a suitable IPv4 address, exit inner loop
+          }
+        }
+        if (localIpAddress) {
+          break; // Found a suitable IPv4 address, exit outer loop
+        }
+      }
+      return localIpAddress;
+    }
     ctx = {
       request: {
+        ip: getLocalIpAddress(),
         protocol: 'https',
         method: '',
         url: '/a/really/long/url/to/a/special/page',
@@ -30,17 +51,10 @@ describe('First test suite for banner package', async () => {
           referer: 'https://googoogle.com',
         },
       },
-      throw: (code, msg) => {
-        throw new Error(`Error code ${code}: ${msg}`)
-      }
     }
-    ctx_DEL = { ...ctx }
-    ctx_PUT = { ...ctx }
-    ctx_POST = { ...ctx }
-    ctx_GET = { ...ctx }
-    next = async () => {
+    next = async (m) => {
       setTimeout(() => {
-        console.log('the next() function')
+        console.log(`the next(${m}) function`)
       }, 1000)
     }
     cfg = {
@@ -68,44 +82,64 @@ describe('First test suite for banner package', async () => {
   })
 
   it('Should work as a koajs middleware function - POST method.', async () => {
-    ctx_POST = Object.assign(ctx_POST, ctx)
+    ctx_POST = Object.assign({}, ctx)
     ctx_POST.request.method = 'POST'
+    ctx_POST.throw = (code, err, {} = null) => {
+      throw new Error(`${code}, ${msg}`)
+    }
     console.log(ctx_POST)
     const post = new Banner(ctx_POST)
-    assert(await post.use()(ctx, next))
+    assert(await post.use()(ctx_POST, next))
   })
 
   it('Should work as a koajs middleware function - GET method.', async () => {
-    ctx_GET = Object.assign(ctx_GET, ctx)
+    ctx_GET = Object.assign({}, ctx)
     ctx_GET.request.method = 'GET'
+    ctx_GET.throw = (code, err, {} = null) => {
+      throw new Error(`${code}, ${msg}`)
+    }
     console.log(ctx_GET)
     const get = new Banner(ctx_GET)
-    assert(await get.use()(ctx, next))
+    assert(await get.use()(ctx_GET, next))
   })
 
   it('Should work as a koajs middleware function - PUT method.', async () => {
-    ctx_PUT = Object.assign(ctx_PUT, ctx)
+    ctx_PUT = Object.assign({}, ctx)
     ctx_PUT.request.method = 'PUT'
+    ctx_PUT.throw = (code, err, {} = null) => {
+      throw new Error(`${code}, ${msg}`)
+    }
     console.log(ctx_PUT)
     const put = new Banner(ctx_PUT)
-    assert(await put.use()(ctx, next))
+    assert(await put.use()(ctx_PUT, next))
   })
 
   it('Should work as a koajs middleware function - DELETE method.', async () => {
-    ctx_DEL = Object.assign(ctx_DEL, ctx)
+    ctx_DEL = Object.assign({}, ctx)
     ctx_DEL.request.method = 'DELETE'
+    ctx_DEL.throw = (code, err, {} = null) => {
+      throw new Error(`${code}, ${msg}`)
+    }
     console.log(ctx_DEL)
     const del = new Banner(ctx_DEL)
-    assert(await del.use()(ctx, next))
+    assert(await del.use()(ctx_DEL, next))
   })
 
 it('Should fail as a koajs middleware function, missing input parameters.', async () => {
-    ctx.url= ''
-    ctx.request.header.host = undefined 
-    ctx.request.url = undefined 
+    ctx.request.header.host = null
+    ctx.request.url = null
+    ctx.throw = (code, err) => {
+      // console.log(err.message)
+      throw err 
+    }
     console.log(ctx)
-    const post = new Banner()
-    await post.use()(ctx, next)
-    // assert.throws(await post.use()(ctx, next))
+    const req = new Banner()
+    const use = await req.use()
+    assert.rejects(
+      async () => {
+        await use(ctx)
+      },
+      Error,
+    )
   })
 })
