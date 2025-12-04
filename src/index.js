@@ -7,8 +7,8 @@
 import Debug from 'debug'
 
 Debug.log = console.log.bind(console)
-const log = Debug('banner')
-const error = log.extend('ERROR')
+// const log = Debug('banner')
+// const error = log.extend('ERROR')
 
 /**
  * A class to create and emit a start-up banner of Koajs based apps.
@@ -18,24 +18,43 @@ const error = log.extend('ERROR')
  */
 export class Banner {
   #appName
+
   #arch
+
   #bannerText
+
   #borderGlyphGET = '#'
+
   #borderGlyphPUT = '&'
+
   #borderGlyphPOST = '@'
+
   #borderGlyphDELETE = '*'
+
   #ipAddress
+
   #lineStarts = []
+
   #lines = []
+
   #local
+
   #localPort
+
   #nodejs
+
   #nodeLts
+
   #nodeName
+
   #nodeVersion
+
   #platform
+
   #public
+
   #startingup
+
   /**
    * Create an instance of the Banner class.
    * @param { object } [strings] - An object literal of strings to display in the banner.
@@ -46,7 +65,7 @@ export class Banner {
    * @param { string } strings.public - The public web address the app is accesssible at.
    * @returns { Banner}
    */
-  constructor(strings=null) {
+  constructor(strings = null) {
     this.#arch = process.arch
     this.#nodeLts = process.release?.lts ?? null
     this.#nodeName = process.release.name
@@ -64,7 +83,7 @@ export class Banner {
       this.#borderGlyphGET = strings?.borderGlyph ?? this.#borderGlyphGET
       this.#localPort = strings?.localPort ?? null
       this.#ipAddress = strings?.ip ?? null
-      this.#local = `${strings.local}${(this.#localPort) ? ':' + this.#localPort : ''}`
+      this.#local = `${strings.local}${(this.#localPort) ? `: ${this.#localPort}` : ''}`
       this.#public = strings.public
       this.#startingup = strings.name
     }
@@ -79,63 +98,62 @@ export class Banner {
    * @throws { Error } - Throws an exception if name, public, local values are missing.
    * @return { void }
    */
-  #compose () {
+  #compose() {
     if (!this.#appName || !this.#local || !this.#public) {
       throw new Error('Missing required inputs.')
     }
     this.startingupLine = `${this.startingupLabel}: ${this.#startingup}`
     this.#lineStarts.push(this.startingupLine)
     this.localLine = `${this.localLabel}: `
-      + `${/^https?:\/\//.test(this.#local) ? this.#local : 'http://' + this.#local}`
+      + `${/^https?:\/\//.test(this.#local) ? `${this.#local}` : `http://${this.#local}`}`
     this.#lineStarts.push(this.localLine)
     this.publicLine = `${this.publicLabel}: `
-      + `${/^https?:\/\//.test(this.#public) ? this.#public : 'https://' + this.#public}`
+      + `${/^https?:\/\//.test(this.#public) ? `${this.#public}` : `https://${this.#public}`}`
     this.#lineStarts.push(this.publicLine)
     this.archLine = `${this.archLabel}: ${this.#arch} ${this.#platform}`
     this.#lineStarts.push(this.archLine)
     this.nodejsLine = `${this.nodejsLabel}: ${this.#nodeName} ${this.#nodeVersion} `
-      + `${(this.#nodeLts) ? '(' + this.#nodeLts + ')' : ''}`
+      + `${(this.#nodeLts) ? `(${this.#nodeLts})` : ''}`
     this.#lineStarts.push(this.nodejsLine)
 
-    this.startingupLine = this.startingupLine.padStart(
-      (this.longestLabel - this.startingupLine.indexOf(':'))
-      + this.startingupLine.length, ' ')
+    this.startingupLine = this.startingupLine
+      .padStart((this.longestLabel - this.startingupLine.indexOf(':'))
+        + this.startingupLine.length, ' ')
     this.#lines[0] = this.startingupLine
 
-    this.localLine = this.localLine.padStart(
-      (this.longestLabel - this.localLine.indexOf(':'))
-      + this.localLine.length, ' ')
+    this.localLine = this.localLine
+      .padStart((this.longestLabel - this.localLine.indexOf(':'))
+        + this.localLine.length, ' ')
     this.#lines[1] = this.localLine
 
-    this.publicLine = this.publicLine.padStart(
-      (this.longestLabel - this.publicLine.indexOf(':'))
-      + this.publicLine.length, ' ')
+    this.publicLine = this.publicLine
+      .padStart((this.longestLabel - this.publicLine.indexOf(':'))
+        + this.publicLine.length, ' ')
     this.#lines[2] = this.publicLine
 
-    this.nodejsLine = this.nodejsLine.padStart(
-      (this.longestLabel - this.nodejsLine.indexOf(':'))
-      + this.nodejsLine.length, ' ')
+    this.nodejsLine = this.nodejsLine
+      .padStart((this.longestLabel - this.nodejsLine.indexOf(':'))
+        + this.nodejsLine.length, ' ')
     this.#lines[3] = this.nodejsLine
 
-    this.archLine = this.archLine.padStart(
-      (this.longestLabel - this.archLine.indexOf(':'))
-      + this.archLine.length, ' ')
+    this.archLine = this.archLine
+      .padStart((this.longestLabel - this.archLine.indexOf(':'))
+        + this.archLine.length, ' ')
     this.#lines[4] = this.archLine
 
     const g = this.#borderGlyphGET
-    this.#bannerText =
-      `${g}${g.padEnd(this.longestLine + 5, g)}${g}\n`
+    this.#bannerText = `${g}${g.padEnd(this.longestLine + 5, g)}${g}\n`
       + `${g}  ${' '.padEnd(this.longestLine + 2, ' ')} ${g}\n`
-      + `${g} ${this.startingupLine}${' '.padEnd(
-        (this.longestLine - this.startingupLine.length) + 3, ' ')} ${g}\n`
-      + `${g} ${this.localLine}${' '.padEnd(
-        (this.longestLine - this.localLine.length) + 3, ' ')} ${g}\n`
-      + `${g} ${this.publicLine}${' '.padEnd(
-        (this.longestLine - this.publicLine.length) + 3, ' ')} ${g}\n`
-      + `${g} ${this.nodejsLine}${' '.padEnd(
-        (this.longestLine - this.nodejsLine.length) + 3, ' ')} ${g}\n`
-      + `${g} ${this.archLine}${' '.padEnd(
-        (this.longestLine - this.archLine.length) + 3, ' ')} ${g}\n`
+      + `${g} ${this.startingupLine}${' '
+        .padEnd((this.longestLine - this.startingupLine.length) + 3, ' ')} ${g}\n`
+        + `${g} ${this.localLine}${' '
+          .padEnd((this.longestLine - this.localLine.length) + 3, ' ')} ${g}\n`
+          + `${g} ${this.publicLine}${' '
+            .padEnd((this.longestLine - this.publicLine.length) + 3, ' ')} ${g}\n`
+            + `${g} ${this.nodejsLine}${' '
+              .padEnd((this.longestLine - this.nodejsLine.length) + 3, ' ')} ${g}\n`
+              + `${g} ${this.archLine}${' '
+                .padEnd((this.longestLine - this.archLine.length) + 3, ' ')} ${g}\n`
       + `${g}  ${' '.padEnd(this.longestLine + 2, ' ')} ${g}\n`
       + `${g}${g.padEnd(this.longestLine + 5, g)}${g}\n`
   }
@@ -166,13 +184,13 @@ export class Banner {
     }
   }
 
-    /**
+  /**
    * Set the local address displayed in the banner.
    * @type { string }
    * @param { string } local - The local address displayed in the banner.
    */
   set local(local) {
-    this.#local = `${local}${(this.#localPort) ? ':' + this.#localPort : ''}`
+    this.#local = `${local}${(this.#localPort) ? `:${this.#localPort}` : ''}`
     if (this.#appName && this.#public) {
       this.#compose()
     }
@@ -254,24 +272,24 @@ export class Banner {
 
   /**
    * Create a middleware method that generates a banner for each request.
-   * @param { function } [log] - an optional reference to the app level logging function.
-   * @param { function } [error] - an optional reference to the app level error logging function.
+   * @param { function } [Log] - an optional reference to the app level logging function.
+   * @param { function } [Error] - an optional reference to the app level error logging function.
    * @returns { (ctx:object, next:function) => mixed } - Koa middleware function.
    */
-  use(log=null, error=null) {
-    const _log = log ?? console.log
-    const _error = error ?? console.error
+  use(Log = null, Error = null) {
+    const _log = Log ?? console.log
+    // const _error = Error ?? console.error
     _log('adding request banner to the app.')
     const gGET = this.#borderGlyphGET
     const gPUT = this.#borderGlyphPUT
     const gPOST = this.#borderGlyphPOST
     const gDEL = this.#borderGlyphDELETE
-    const n = this.#appName
-    return async function banner(ctx, next = null){
+    // const n = this.#appName
+    return async function banner(ctx, next = null) {
       let _requestBanner
       try {
         let _g
-        switch(ctx.request.method.toLowerCase()) {
+        switch (ctx.request.method.toLowerCase()) {
           case 'get':
             _g = gGET
             break
@@ -288,18 +306,18 @@ export class Banner {
             _g = gGET
         }
         if (!ctx) {
-          throw new Error('Missing required ctx object.')  
+          throw new Error('Missing required ctx object.')
         }
         if (!ctx.request.header.host) {
-          throw new Error('Missing required request header.host value.')  
+          throw new Error('Missing required request header.host value.')
         }
         if (!ctx.request.method) {
-          throw new Error('Missing required request method value.')  
+          throw new Error('Missing required request method value.')
         }
         if (!ctx.request.url) {
-          throw new Error('Missing required request url value.')  
+          throw new Error('Missing required request url value.')
         }
-        const _urlLabel = `${ctx.request.method}:` 
+        const _urlLabel = `${ctx.request.method}:`
         const _url = `${ctx.request.protocol}://${ctx.request.header.host}${ctx.request.url}`
         let _urlLine = `${_urlLabel} ${_url}`
         const _refLabel = 'Referer:'
@@ -315,21 +333,23 @@ export class Banner {
           return (c.indexOf(':') + 1)
         }, '')
         _refLine = _refLine.padStart(
-          (_longestLabel - _refLine.indexOf(':')) + _refLine.length, ' '
+          (_longestLabel - _refLine.indexOf(':')) + _refLine.length,
+          ' ',
         )
         _urlLine = _urlLine.padStart(
-          (_longestLabel - _urlLine.indexOf(':')) + _urlLine.length, ' '
+          (_longestLabel - _urlLine.indexOf(':')) + _urlLine.length,
+          ' ',
         )
         _ipLine = _ipLine.padStart(
-          (_longestLabel - _ipLine.indexOf(':')) + _ipLine.length, ' '
+          (_longestLabel - _ipLine.indexOf(':')) + _ipLine.length,
+          ' ',
         )
         const _longestLine = [_urlLine, _refLine, _ipLine].reduce((a, c) => {
           if (a > c.length) return a
           return c.length
         }, '')
         // _log('request banner _longestLine', _longestLine)
-        _requestBanner = 
-          `${_g.padEnd(_longestLine + 5, _g)}\n`
+        _requestBanner = `${_g.padEnd(_longestLine + 5, _g)}\n`
           + `${_g} ${_urlLine}\n`
           + `${_g} ${_refLine}\n`
           + `${_g} ${_ipLine}\n`
