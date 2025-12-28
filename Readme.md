@@ -31,7 +31,7 @@ app.use(banner.use())
   Emits at the beginning of each client request.
   #################################################################
   #      GET: https://dev.example.com/map/getToken?debug=verbose
-  #  Referer: https://dev.exaple.com/?debug=verbose
+  #  Referer: https://dev.example.com/?debug=verbose
   #  From IP: 192.168.1.254
   #################################################################
 */
