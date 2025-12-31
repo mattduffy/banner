@@ -295,6 +295,7 @@ export class Banner {
             break
           case 'post':
             _g = gPOST
+            console.info(ctx.request.body)
             break
           case 'put':
             _g = gPUT
@@ -319,6 +320,12 @@ export class Banner {
         }
         const _urlLabel = `${ctx.request.method}:`
         const _url = `${ctx.request.protocol}://${ctx.request.header.host}${ctx.request.url}`
+        const _searchParams = new URL(_url).searchParams
+        if (_searchParams.size !== 0) {
+          _searchParams.forEach((p, v) => {
+            console.info(p, v)
+          })
+        }
         let _urlLine = `${_urlLabel} ${_url}`
         const _refLabel = 'Referer:'
         const _ref = ctx.request.header.referer ?? '<emtpy header field>'
