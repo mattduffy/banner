@@ -30,9 +30,11 @@ app.use(banner.use())
 /*
   Emits at the beginning of each client request.
   #################################################################
-  #      GET: https://dev.example.com/map/getToken?debug=verbose
-  #  Referer: https://dev.example.com/?debug=verbose
-  #  From IP: 192.168.1.254
+  #           GET: https://dev.example.com/map/getToken
+  #  Query Params: ?debug=verbose
+  #       Referer: https://dev.example.com/?debug=verbose
+  #       From IP: 192.168.1.254
+  #     Timestamp: 1/7/2026, 10:34:14 AM
   #################################################################
 */
 ```
@@ -43,36 +45,41 @@ the ```ctx.request.method``` property.  The supported request methods are ```GET
 
 ```
 // GET
-######################################################################
-#      GET: https://banner.test/a/really/long/url/to/a/special/page
-#  Referer: https://googoogle.com
-#  From IP: 192.168.1.250
-######################################################################
+##########################################################################
+#           GET: https://banner.test/a/really/long/url/to/a/special/page
+#  Query Params: ?param1=querty&param2=12345&param3=true
+#       Referer: https://googoogle.com
+#       From IP: 192.168.1.250
+#     Timestamp: 1/7/2026, 10:34:14 AM
+##########################################################################
 ```
 
 ```
 // PUT
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-&      PUT: https://banner.test/a/really/long/url/to/a/special/page
-&  Referer: https://googoogle.com
-&  From IP: 192.168.1.250
+&        PUT: https://banner.test/a/really/long/url/to/a/special/page
+&    Referer: https://googoogle.com
+&    From IP: 192.168.1.250
+&  Timestamp: 1/7/2026, 10:34:14 AM
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 ```
 
 ```
 // POST
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@     POST: https://banner.test/a/really/long/url/to/a/special/page
-@  Referer: https://googoogle.com
-@  From IP: 192.168.1.250
+@       POST: https://banner.test/a/really/long/url/to/a/special/page
+@    Referer: https://googoogle.com
+@    From IP: 192.168.1.250
+@  Timestamp: 1/7/2026, 10:34:14 AM
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ```
 
 ```
 // DELETE
 **********************************************************************
-*   DELETE: https://banner.test/a/really/long/url/to/a/special/page
-*  Referer: https://googoogle.com
-*  From IP: 192.168.1.250
+*     DELETE: https://banner.test/a/really/long/url/to/a/special/page
+*    Referer: https://googoogle.com
+*    From IP: 192.168.1.250
+*  Timestamp: 1/7/2026, 10:34:14 AM
 **********************************************************************
 ```
