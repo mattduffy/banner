@@ -318,27 +318,66 @@ export class Banner {
         if (!ctx.request.url) {
           throw new Error('Missing required request url value.')
         }
+        const labels = []
+        const values = []
+        const lines = []
         const _urlLabel = `${ctx.request.method}:`
-        const _url = `${ctx.request.protocol}://${ctx.request.header.host}${ctx.request.url}`
-        const _searchParams = new URL(_url).searchParams
-        if (_searchParams.size !== 0) {
-          _searchParams.forEach((p, v) => {
-            console.info(p, v)
-          })
+        let _url = `${ctx.request.protocol}://${ctx.request.header.host}${ctx.request.url}`
+        const _queryStringIndex = _url.indexOf('?')
+        const _queryStringLabel = 'Query Params:'
+        let _queryString = ''
+        let _queryStringLine = ''
+        if (_queryStringIndex !== -1) {
+          _queryString = _url.slice(_url.indexOf('?'))
+          _queryStringLine = `${_queryStringLabel} ${_queryString}`
+          labels.push(_queryStringLabel)
+          values.push(_queryString)
+          lines.push(_queryStringLine)
+          // console.log('adding query string to request banner')
         }
+        _url = (_queryString.length > 0) ? _url.slice(0, _url.indexOf('?')) : _url
+        values.push(_url)
         let _urlLine = `${_urlLabel} ${_url}`
         const _refLabel = 'Referer:'
         const _ref = ctx.request.header.referer ?? '<emtpy header field>'
+        values.push(_ref)
         let _refLine = `${_refLabel} ${_ref}`
         const _ipLabel = 'From IP:'
         const _ip = ctx.request.ip
+        values.push(_ip)
         let _ipLine = `${_ipLabel} ${_ip}`
-        const _longestLabel = [_urlLabel, _refLabel, _ipLabel].reduce((a, c) => {
-          if (a.length > (c.indexOf(':') + 1)) {
-            return a
-          }
-          return (c.indexOf(':') + 1)
-        }, '')
+        const _timestampLabel = 'Timestamp:'
+        const _timestamp = new Date().toLocaleString()
+        values.push(_timestamp)
+        let _timestampLine = `${_timestampLabel} ${_timestamp}`
+        labels.push(_urlLabel)
+        labels.push(_refLabel)
+        labels.push(_ipLabel)
+        labels.push(_timestampLabel)
+        // console.log(labels)
+
+        // console.log(values)
+        const _longestValue = values
+          .reduce((a, c) => {
+            if (a > c.length) return a
+            return c.length
+          }, '')
+        // console.log('longest value', _longestValue)
+
+        lines.push(_ipLine)
+        lines.push(_timestampLine)
+        lines.push(_urlLine)
+        lines.push(_refLine)
+        // console.log(lines)
+        const _longestLabel = labels
+          .reduce((a, c) => {
+            // console.log(a, c.indexOf(':') + 1)
+            if (a > (c.indexOf(':') + 1)) {
+              return a
+            }
+            return (c.indexOf(':') + 1)
+          }, '')
+        // console.log('longest label', _longestLabel)
         _refLine = _refLine.padStart(
           (_longestLabel - _refLine.indexOf(':')) + _refLine.length,
           ' ',
@@ -347,20 +386,38 @@ export class Banner {
           (_longestLabel - _urlLine.indexOf(':')) + _urlLine.length,
           ' ',
         )
+        if (_queryStringLine.length > 0) {
+          _queryStringLine = _queryStringLine.padStart(
+            (_longestLabel - _queryStringLine.indexOf(':')) + _queryStringLine.length,
+            ' ',
+          )
+        }
         _ipLine = _ipLine.padStart(
           (_longestLabel - _ipLine.indexOf(':')) + _ipLine.length,
           ' ',
         )
-        const _longestLine = [_urlLine, _refLine, _ipLine].reduce((a, c) => {
-          if (a > c.length) return a
-          return c.length
-        }, '')
-        // _log('request banner _longestLine', _longestLine)
-        _requestBanner = `${_g.padEnd(_longestLine + 5, _g)}\n`
+        _timestampLine = _timestampLine.padStart(
+          (_longestLabel - _timestampLine.indexOf(':')) + _timestampLine.length,
+          ' ',
+        )
+        const _longestLine = _longestLabel + _longestValue
+        // const _longestLine = lines
+        //   .reduce((a, c) => {
+        //     // console.log(a, c.length)
+        //     if (a > c.length) return a
+        //     return c.length
+        //   }, '')
+        // console.log('longest line', _longestLine)
+        /* eslint-disable prefer-template */
+        const endDangler = 6
+        _requestBanner = `${_g.padEnd(_longestLine + endDangler, _g)}\n`
           + `${_g} ${_urlLine}\n`
+          + `${(_queryStringLine.length > 0) ? _g + ' ' + _queryStringLine + '\n' : ''}`
           + `${_g} ${_refLine}\n`
           + `${_g} ${_ipLine}\n`
-          + `${_g.padEnd(_longestLine + 5, _g)}`
+          + `${_g} ${_timestampLine}\n`
+          + `${_g.padEnd(_longestLine + endDangler, _g)}`
+        /* eslint-enable prefer-template */
         _log(_requestBanner)
         if (next) {
           await next(ctx.request.method)
