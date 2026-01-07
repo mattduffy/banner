@@ -133,6 +133,19 @@ describe('First test suite for banner package', async () => {
     assert(await del.use()(ctx_DEL, next))
   })
 
+  it('Should work as a koajs middleware function - GET method, with query string.', async () => {
+    // ctx_GET = Object.assign({}, ctx)
+    ctx_GET = { ...ctx }
+    ctx_GET.request.method = 'GET'
+    ctx_GET.request.url += '?param1=querty&param2=12345&param3=true'
+    ctx_GET.throw = (code, err) => {
+      throw new Error(`${code}, ${err}`)
+    }
+    console.log(ctx_GET)
+    const get = new Banner(ctx_GET)
+    assert(await get.use()(ctx_GET, next))
+  })
+
   it('Should fail as a koajs middleware function, missing input parameters.', async () => {
     ctx.request.header.host = null
     ctx.request.url = null
