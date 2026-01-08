@@ -93,21 +93,21 @@ is available, save it to ```ctx.state``` like so:
 ctx.state.logEntry = {
   geos: [
     {
-      country: <client-country>,
-      city: <client-city>,
-      subdivision: <client-subdivision>, // the state in USA
-      coords: [<latitude>, <longitude>],
+      country: 'United States',
+      city: 'New York City',
+      subdivision: 'New York', // the state in USA
+      coords: [40.775697, -73.971727],
     },
   ],
 }
 
-###########################################################################################
+############################################################################################################
 #        GET: https://banner.test/a/really/long/url/to/a/special/page
 #    Referer: https://googoogle.com
 #    From IP: 192.168.1.250
-#   Location: Country: United States, City: New York City, lat/lon: 40.775697, -73.971727
-#  Timestamp: 1/7/2026, 8:22:41 PM
-###########################################################################################
+#   Location: Country: United States, State: New York, City: New York City, lat/lon: 40.775697, -73.971727
+#  Timestamp: 1/8/2026, 9:15:40 AM
+############################################################################################################
 ```
 The geo-location details must be saved to the context state property before the 
 ```app.use(banner.use())``` is executed for this to work.
