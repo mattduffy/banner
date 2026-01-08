@@ -83,3 +83,31 @@ the ```ctx.request.method``` property.  The supported request methods are ```GET
 *  Timestamp: 1/7/2026, 10:34:14 AM
 **********************************************************************
 ```
+
+Under the right conditions, the request banner can also include geo-location details
+about the client.  For each new request, Koajs creates a context object containing the
+request and response objects ```ctx.request``` and ```ctx.response```.  It is a common
+technique to add a state property to the ctx object, like ```ctx.state```.  If geo-location
+is available, save it to ```ctx.state``` like so:
+```javascript
+ctx.state.logEntry = {
+  geos: [
+    {
+      country: <client-country>,
+      city: <client-city>,
+      subdivision: <client-subdivision>, // the state in USA
+      coords: [<latitude>, <longitude>],
+    },
+  ],
+}
+
+###########################################################################################
+#        GET: https://banner.test/a/really/long/url/to/a/special/page
+#    Referer: https://googoogle.com
+#    From IP: 192.168.1.250
+#   Location: Country: United States, City: New York City, lat/lon: 40.775697, -73.971727
+#  Timestamp: 1/7/2026, 8:22:41 PM
+###########################################################################################
+```
+The geo-location details must be saved to the context state property before the 
+```app.use(banner.use())``` is executed for this to work.
