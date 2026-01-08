@@ -45,6 +45,7 @@ describe('First test suite for banner package', async () => {
       return localIpAddress
     }
     ctx = {
+      state: {},
       request: {
         ip: getLocalIpAddress(),
         protocol: 'https',
@@ -107,6 +108,31 @@ describe('First test suite for banner package', async () => {
     console.log(ctx_GET)
     const get = new Banner(ctx_GET)
     assert(await get.use()(ctx_GET, next))
+  })
+
+  it('Should work as a koajs middleware function - GET method, check for geos.', async () => {
+    // ctx_GET = Object.assign({}, ctx)
+    ctx_GET = { ...ctx }
+    ctx_GET.request.method = 'GET'
+    ctx_GET.throw = (code, err) => {
+      throw new Error(`${code}, ${err}`)
+    }
+    ctx_GET.state.logEntry = {
+      geos: [
+        {
+          ip: '10.20.30.40',
+          country: 'United States',
+          city: 'New York City',
+          coords: [40.775697, -73.971727],
+        },
+      ],
+    }
+    console.log(ctx_GET)
+    assert(ctx_GET.state.logEntry.geos[0].coords.length === 2)
+    const get = new Banner(ctx_GET)
+    const banner = await get.use()(ctx_GET, next)
+    assert(/40\.775697/m.test(banner))
+    delete ctx_GET.state.logEntry
   })
 
   it('Should work as a koajs middleware function - PUT method.', async () => {
