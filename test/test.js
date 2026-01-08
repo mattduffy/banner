@@ -122,6 +122,7 @@ describe('First test suite for banner package', async () => {
         {
           ip: '10.20.30.40',
           country: 'United States',
+          subdivision: 'New York',
           city: 'New York City',
           coords: [40.775697, -73.971727],
         },

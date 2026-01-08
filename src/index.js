@@ -360,7 +360,8 @@ export class Banner {
           labels.push(_locationLabel)
           /* eslint-disable prefer-template */
           const _location = `${(l.country) ? 'Country: ' + l.country + ', ' : ''}`
-            + `${(l.subdivision) ? 'Subdivision: ' + l.subdivision + ', ' : ''}`
+            + `${(l.subdivision) ? ((/united states|(usa)/i.test(l.country))
+              ? 'State: ' : 'Subdivision: ') + l.subdivision + ', ' : ''}`
             + `${(l.city) ? 'City: ' + l.city + ', ' : ''}`
             + `${(l.coords) ? 'lat/lon: ' + l.coords[0] + ', ' + l.coords[1] : ''}`
           /* eslint-enable prefer-template */
