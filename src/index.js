@@ -279,7 +279,7 @@ export class Banner {
   use(Log = null, Error = null) {
     const _log = Log ?? console.log
     // const _error = Error ?? console.error
-    _log('adding request banner to the app.')
+    // _log('adding request banner to the app.')
     const gGET = this.#borderGlyphGET
     const gPUT = this.#borderGlyphPUT
     const gPOST = this.#borderGlyphPOST
@@ -322,6 +322,7 @@ export class Banner {
         const values = []
         const lines = []
         const _urlLabel = `${ctx.request.method}:`
+        labels.push(_urlLabel)
         let _url = `${ctx.request.protocol}://${ctx.request.header.host}${ctx.request.url}`
         const _queryStringIndex = _url.indexOf('?')
         const _queryStringLabel = 'Query Params:'
@@ -333,51 +334,65 @@ export class Banner {
           labels.push(_queryStringLabel)
           values.push(_queryString)
           lines.push(_queryStringLine)
-          // console.log('adding query string to request banner')
+          // _log('adding query string to request banner')
         }
         _url = (_queryString.length > 0) ? _url.slice(0, _url.indexOf('?')) : _url
         values.push(_url)
         let _urlLine = `${_urlLabel} ${_url}`
+        lines.push(_urlLine)
         const _refLabel = 'Referer:'
+        labels.push(_refLabel)
         const _ref = ctx.request.header.referer ?? '<emtpy header field>'
         values.push(_ref)
         let _refLine = `${_refLabel} ${_ref}`
+        lines.push(_refLine)
         const _ipLabel = 'From IP:'
+        labels.push(_ipLabel)
         const _ip = ctx.request.ip
         values.push(_ip)
         let _ipLine = `${_ipLabel} ${_ip}`
+        lines.push(_ipLine)
+        let _locationLine = ''
+        if (ctx?.state?.logEntry?.geos[0]) {
+          // _log('banner geolocation says what?', ctx?.state?.logEntry)
+          const l = ctx.state.logEntry.geos[0]
+          const _locationLabel = 'Location:'
+          labels.push(_locationLabel)
+          /* eslint-disable prefer-template */
+          const _location = `${(l.country) ? 'Country: ' + l.country + ', ' : ''}`
+            + `${(l.subdivision) ? 'Subdivision: ' + l.subdivision + ', ' : ''}`
+            + `${(l.city) ? 'City: ' + l.city + ', ' : ''}`
+            + `${(l.coords) ? 'lat/lon: ' + l.coords[0] + ', ' + l.coords[1] : ''}`
+          /* eslint-enable prefer-template */
+          values.push(_location)
+          _locationLine = `${_locationLabel} ${_location}`
+          lines.push(_locationLine)
+        }
         const _timestampLabel = 'Timestamp:'
+        labels.push(_timestampLabel)
         const _timestamp = new Date().toLocaleString()
         values.push(_timestamp)
         let _timestampLine = `${_timestampLabel} ${_timestamp}`
-        labels.push(_urlLabel)
-        labels.push(_refLabel)
-        labels.push(_ipLabel)
-        labels.push(_timestampLabel)
-        // console.log(labels)
-
-        // console.log(values)
+        lines.push(_timestampLine)
+        // _log(labels)
+        // _log(values)
+        // _log(lines)
         const _longestValue = values
           .reduce((a, c) => {
             if (a > c.length) return a
             return c.length
           }, '')
-        // console.log('longest value', _longestValue)
+        // _log('longest value', _longestValue)
 
-        lines.push(_ipLine)
-        lines.push(_timestampLine)
-        lines.push(_urlLine)
-        lines.push(_refLine)
-        // console.log(lines)
         const _longestLabel = labels
           .reduce((a, c) => {
-            // console.log(a, c.indexOf(':') + 1)
+            // _log(a, c.indexOf(':') + 1)
             if (a > (c.indexOf(':') + 1)) {
               return a
             }
             return (c.indexOf(':') + 1)
           }, '')
-        // console.log('longest label', _longestLabel)
+        // _log('longest label', _longestLabel)
         _refLine = _refLine.padStart(
           (_longestLabel - _refLine.indexOf(':')) + _refLine.length,
           ' ',
@@ -396,6 +411,12 @@ export class Banner {
           (_longestLabel - _ipLine.indexOf(':')) + _ipLine.length,
           ' ',
         )
+        if (_locationLine.length > 0) {
+          _locationLine = _locationLine.padStart(
+            (_longestLabel - _locationLine.indexOf(':')) + _locationLine.length,
+            ' ',
+          )
+        }
         _timestampLine = _timestampLine.padStart(
           (_longestLabel - _timestampLine.indexOf(':')) + _timestampLine.length,
           ' ',
@@ -403,11 +424,11 @@ export class Banner {
         const _longestLine = _longestLabel + _longestValue
         // const _longestLine = lines
         //   .reduce((a, c) => {
-        //     // console.log(a, c.length)
+        //     // _log(a, c.length)
         //     if (a > c.length) return a
         //     return c.length
         //   }, '')
-        // console.log('longest line', _longestLine)
+        // _log('longest line', _longestLine)
         /* eslint-disable prefer-template */
         const endDangler = 6
         _requestBanner = `${_g.padEnd(_longestLine + endDangler, _g)}\n`
@@ -415,6 +436,7 @@ export class Banner {
           + `${(_queryStringLine.length > 0) ? _g + ' ' + _queryStringLine + '\n' : ''}`
           + `${_g} ${_refLine}\n`
           + `${_g} ${_ipLine}\n`
+          + `${(_locationLine.length > 0) ? _g + ' ' + _locationLine + '\n' : ''}`
           + `${_g} ${_timestampLine}\n`
           + `${_g.padEnd(_longestLine + endDangler, _g)}`
         /* eslint-enable prefer-template */
