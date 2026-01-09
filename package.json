@@ -4,7 +4,7 @@
   "description": "Displays server start-up information.",
   "author": "Matthew Duffy",
   "license": "ISC",
-  "main": "index.js",
+  "main": "./src/index.js",
   "type": "module",
   "homepage": "https://github.com/mattduffy/banner#readme",
   "repository": {
