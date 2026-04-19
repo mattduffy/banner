@@ -15,20 +15,23 @@
     "url": "https://github.com/mattduffy/banner/issues"
   },
   "scripts": {
-    "test": "DEBUG=* node --test test/test.js"
+    "test": "DEBUG=* node --test test/test.js",
+    "lint": "eslint --"
   },
   "exports": {
     ".": "./src/index.js",
     "./package.json": "./package.json"
   },
   "devDependencies": {
-    "eslint": "8.2.0",
+    "eslint": "8.38.0",
     "eslint-config-airbnb-base": "15.0.0",
+    "eslint-import-resolver-exports": "1.0.0-beta.5",
     "eslint-plugin-import": "2.25.2"
   },
   "keywords": [],
   "dependencies": {
     "debug": "4.4.1",
-    "eslint-restricted-globals": "0.2.0"
+    "eslint-restricted-globals": "0.2.0",
+    "save": "2.9.0"
   }
 }
