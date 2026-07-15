@@ -83,7 +83,7 @@ export class Banner {
       this.#borderGlyphGET = strings?.borderGlyph ?? this.#borderGlyphGET
       this.#localPort = strings?.localPort ?? null
       this.#ipAddress = strings?.ip ?? null
-      this.#local = `${strings.local}${(this.#localPort) ? `: ${this.#localPort}` : ''}`
+      this.#local = `${strings.local}${(this.#localPort) ? `:${this.#localPort}` : ''}`
       this.#public = strings.public
       this.#startingup = strings.name
     }
